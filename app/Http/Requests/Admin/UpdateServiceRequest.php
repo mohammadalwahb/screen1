@@ -19,6 +19,7 @@ class UpdateServiceRequest extends FormRequest
             'building_id' => ['required', 'integer', 'exists:buildings,id'],
             'floor' => ['required', 'string', 'max:100'],
             'room' => ['required', 'string', 'max:100'],
+            'picture' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:4096'],
             'keywords' => ['nullable', 'string', 'max:2000'],
             'is_active' => ['nullable', 'boolean'],
         ];

@@ -23,6 +23,12 @@
 <label for="room">Room</label>
 <input type="text" id="room" name="room" value="{{ old('room', $service?->room) }}" required>
 
+<label for="picture">Service picture</label>
+<input type="file" id="picture" name="picture" accept=".jpg,.jpeg,.png,.webp">
+@if($service?->picture && \Illuminate\Support\Facades\Storage::disk('public')->exists($service->picture))
+    <p style="margin-top:8px;"><img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($service->picture) }}" alt="" style="max-height:120px;border-radius:8px;border:1px solid #e5e7eb;"></p>
+@endif
+
 <label for="keywords">Keywords (comma-separated)</label>
 <textarea id="keywords" name="keywords" rows="3">{{ $selectedKeywords }}</textarea>
 

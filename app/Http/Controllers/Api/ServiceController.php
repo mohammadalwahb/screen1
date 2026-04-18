@@ -7,12 +7,17 @@ use App\Http\Requests\Api\ServiceSearchRequest;
 use App\Http\Requests\Api\UpdatedSinceRequest;
 use App\Models\Service;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ServiceController extends Controller
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $services = Service::query()
+        $validated = $request->validate([
+            'building_ids' => ['sometimes', 'nullable', 'string', 'max:500'],
+        ]);
+
+        $query = Service::query()
             ->select([
                 'id',
                 'name',
@@ -20,14 +25,28 @@ class ServiceController extends Controller
                 'building_id',
                 'floor',
                 'room',
+                'picture',
                 'keywords',
                 'is_active',
                 'updated_at',
                 'deleted_at',
             ])
             ->with(['building:id,name'])
-            ->orderBy('id')
-            ->get();
+            ->orderBy('id');
+
+        if (! empty($validated['building_ids'] ?? null)) {
+            $ids = collect(explode(',', $validated['building_ids']))
+                ->map(fn (string $value): int => (int) trim($value))
+                ->filter(fn (int $id): bool => $id > 0)
+                ->unique()
+                ->values()
+                ->all();
+            if ($ids !== []) {
+                $query->whereIn('building_id', $ids);
+            }
+        }
+
+        $services = $query->get();
 
         return response()->json([
             'data' => $services,
@@ -48,6 +67,7 @@ class ServiceController extends Controller
                     'building_id',
                     'floor',
                     'room',
+                    'picture',
                     'keywords',
                     'is_active',
                     'updated_at',
@@ -63,7 +83,7 @@ class ServiceController extends Controller
         $query = trim($request->validated('q'));
 
         $services = Service::query()
-            ->select(['id', 'name', 'building_id', 'floor', 'room'])
+            ->select(['id', 'name', 'building_id', 'floor', 'room', 'picture'])
             ->with(['building:id,name'])
             ->where('is_active', true)
             ->where(function ($serviceQuery) use ($query): void {
@@ -81,6 +101,7 @@ class ServiceController extends Controller
                 'building' => $service->building?->name,
                 'floor' => $service->floor,
                 'room' => $service->room,
+                'picture' => $service->picture,
             ]),
         ]);
     }
@@ -97,6 +118,7 @@ class ServiceController extends Controller
                 'building_id',
                 'floor',
                 'room',
+                'picture',
                 'keywords',
                 'is_active',
                 'updated_at',

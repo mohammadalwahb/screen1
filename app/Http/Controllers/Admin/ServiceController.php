@@ -9,6 +9,7 @@ use App\Models\Building;
 use App\Models\Service;
 use App\Support\Keywords;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 class ServiceController extends Controller
@@ -16,7 +17,7 @@ class ServiceController extends Controller
     public function index(): View
     {
         $services = Service::query()
-            ->select(['id', 'name', 'building_id', 'floor', 'room', 'is_active', 'updated_at'])
+            ->select(['id', 'name', 'building_id', 'floor', 'room', 'picture', 'is_active', 'updated_at'])
             ->with(['building:id,name'])
             ->latest('updated_at')
             ->paginate(20);
@@ -36,8 +37,12 @@ class ServiceController extends Controller
 
     public function store(StoreServiceRequest $request): RedirectResponse
     {
-        $payload = $request->validated();
+        $payload = $request->safe()->except(['picture', 'keywords']);
         $payload['keywords'] = Keywords::fromString($request->input('keywords'));
+
+        if ($request->hasFile('picture')) {
+            $payload['picture'] = $request->file('picture')->store('service-pictures', 'public');
+        }
 
         Service::create($payload);
 
@@ -61,8 +66,15 @@ class ServiceController extends Controller
 
     public function update(UpdateServiceRequest $request, Service $service): RedirectResponse
     {
-        $payload = $request->validated();
+        $payload = $request->safe()->except(['picture', 'keywords']);
         $payload['keywords'] = Keywords::fromString($request->input('keywords'));
+
+        if ($request->hasFile('picture')) {
+            if ($service->picture) {
+                Storage::disk('public')->delete($service->picture);
+            }
+            $payload['picture'] = $request->file('picture')->store('service-pictures', 'public');
+        }
 
         $service->update($payload);
 
@@ -73,6 +85,10 @@ class ServiceController extends Controller
 
     public function destroy(Service $service): RedirectResponse
     {
+        if ($service->picture) {
+            Storage::disk('public')->delete($service->picture);
+        }
+
         $service->delete();
 
         return redirect()

@@ -17,6 +17,7 @@ class Service extends Model
         'building_id',
         'floor',
         'room',
+        'picture',
         'keywords',
         'is_active',
     ];

@@ -21,6 +21,7 @@ class ServiceFactory extends Factory
             'building_id' => Building::factory(),
             'floor' => (string) fake()->numberBetween(1, 5),
             'room' => (string) fake()->numberBetween(100, 450),
+            'picture' => null,
             'keywords' => [fake()->word(), fake()->word()],
             'is_active' => true,
         ];

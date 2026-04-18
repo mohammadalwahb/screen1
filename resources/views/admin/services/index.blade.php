@@ -7,6 +7,7 @@
     <table>
         <thead>
         <tr>
+            <th>Picture</th>
             <th>Name</th>
             <th>Building</th>
             <th>Floor</th>
@@ -19,6 +20,13 @@
         <tbody>
         @forelse($services as $service)
             <tr>
+                <td>
+                    @if($service->picture && \Illuminate\Support\Facades\Storage::disk('public')->exists($service->picture))
+                        <img src="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($service->picture) }}" alt="" style="max-height:48px;max-width:64px;border-radius:6px;object-fit:cover;">
+                    @else
+                        —
+                    @endif
+                </td>
                 <td>{{ $service->name }}</td>
                 <td>{{ $service->building?->name }}</td>
                 <td>{{ $service->floor }}</td>
@@ -45,7 +53,7 @@
             </tr>
         @empty
             <tr>
-                <td colspan="7">No services found.</td>
+                <td colspan="8">No services found.</td>
             </tr>
         @endforelse
         </tbody>

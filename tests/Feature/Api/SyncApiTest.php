@@ -26,6 +26,19 @@ class SyncApiTest extends TestCase
             ]);
     }
 
+    public function test_services_index_includes_picture_field(): void
+    {
+        $building = Building::factory()->create();
+        Service::factory()->create(['building_id' => $building->id]);
+
+        $this->getJson('/api/services')
+            ->assertOk()
+            ->assertJsonStructure([
+                'data' => [['id', 'name', 'picture', 'building_id', 'floor', 'room']],
+                'synced_at',
+            ]);
+    }
+
     public function test_services_search_endpoint_filters_by_name_and_keyword(): void
     {
         $building = Building::factory()->create(['name' => 'Main Campus']);
